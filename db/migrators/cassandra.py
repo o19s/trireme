@@ -3,11 +3,7 @@ import os
 from subprocess import call
 from cassandra.cluster import Cluster
 import datetime
-
-# TODO Move to config file
-contact_points = ["127.0.0.1"]
-keyspace = "foo"
-migration_master = True
+from db.config import contact_points, keyspace, migration_master
 
 cluster = None
 session = None

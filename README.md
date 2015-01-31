@@ -19,7 +19,7 @@ the [Invoke](https://github.com/pyinvoke/invoke) CLI tool.
 To use this tool within the scope of your project follow these steps.
 
 1. Copy the db directory and tasks.py into your project
-2. Setup your config file with your cluster information (see example below)
+2. Copy the ```db/config.py.example``` file to ```db/config.py```. Edit it to match your environment.
 3. Copy any missing requirements into your project's ```requirements.txt``` file
 
 ## Project Layout
