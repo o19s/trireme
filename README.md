@@ -106,5 +106,3 @@ Adding a new migrator involves placing the code with invoke annotations in a fil
 add your migrator to the ```Collection``` entry in ```tasks.py```. If you create a new migrator and would like to share 
 it with the community open a pull request.
 
-## TODO
-* Specify format of config file
