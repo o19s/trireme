@@ -1,5 +1,5 @@
-# DSE Migrator
-Tool providing migration support for Apache Cassandra and DataStax Enterprise Cassandra & Solr. Commands are run using 
+# Trireme
+Trireme is a tool providing migration support for Apache Cassandra, DataStax Enterprise Cassandra & Solr. Commands are run using 
 the [Invoke](https://github.com/pyinvoke/invoke) CLI tool.
 
 ## Python Dependencies
@@ -8,7 +8,7 @@ the [Invoke](https://github.com/pyinvoke/invoke) CLI tool.
 * blist - Replacement for Python's list, used by the C* driver, if ignored the driver will complain about using a pure 
   python version.
 * lz4 - Compression used by the C* driver
-* cassandra-driver - DataStax driver for connecting with DSE, used when creating and dropping keyspaces
+* cassandra-driver - DataStax driver for connecting with Cassandra, used when creating and dropping keyspaces
 * requests - HTTP Client, used when communicating with the Solr APIs
 * invoke - Task execution tool & library. This is used to run the exposed migration tasks
 
