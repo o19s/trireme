@@ -99,14 +99,20 @@ def migrate():
         else:
             print('All migrations have already been run.')
 
-        # Dump the current schema to disk
-        schema = check_output("cqlsh -k {} -e \"DESCRIBE KEYSPACE\" {}".format(keyspace, contact_point), shell=True,
-                              universal_newlines=True)
-        schema_file = open('db/schema.cql', 'w')
-        schema_file.write(schema)
-        schema_file.close()
+        dump_schema()
 
     disconnect()
+
+
+@task
+def dump_schema():
+    contact_point = contact_points[0]
+    schema = check_output("cqlsh -k {} -e \"DESCRIBE KEYSPACE\" {}".format(keyspace, contact_point), shell=True,
+                          universal_newlines=True)
+    schema_file = open('db/schema.cql', 'w')
+    schema_file.write(schema)
+    schema_file.close()
+
 
 @task
 def load_schema():
