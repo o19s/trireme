@@ -1,6 +1,6 @@
 from invoke import task
 import os
-from subprocess import call
+from subprocess import call, check_output
 from cassandra.cluster import Cluster
 import datetime
 from db.config import contact_points, keyspace, migration_master
@@ -96,6 +96,13 @@ def migrate():
                         session.execute(insert_statement, [migration])
         else:
             print('All migrations have already been run.')
+
+        # Dump the current schema to disk
+        schema = check_output("cqlsh -k {} -e \"DESCRIBE KEYSPACE\" {}".format(keyspace, contact_point), shell=True,
+                              universal_newlines=True)
+        schema_file = open('db/schema.cql', 'w')
+        schema_file.write(schema)
+        schema_file.close()
 
     disconnect()
 
