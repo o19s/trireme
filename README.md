@@ -83,6 +83,10 @@ strategy is SimpleStrategy with a Replication Factor of 3.
 * ```cassandra.migrate``` - Runs all missing migrations against the keyspace.
 * ```cassandra.add_migration --name migration_name``` - Generates a migration file under ```db/migrations``` with the 
 current timestamp prepended to the provided ```--name``` value.
+* ```cassandra.dump_schema``` - Dumps the current schmea to ```db/schema.cql```. Be careful when using this feature when
+ Solr is enabled.
+* ```cassandra.load_schema``` - Loads the schema from ```db/schema.cql```. This may be faster than running all 
+migrations in a project. 
 
 Example: ```inv cassandra.create cassandra.migrate``` - Creates the keyspaces and runs all migrations
 

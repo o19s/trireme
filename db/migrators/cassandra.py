@@ -1,10 +1,11 @@
 from invoke import task
 import os
-from subprocess import call
+from subprocess import call, check_output
 from cassandra.cluster import Cluster
 import datetime
 from db.config import contact_points, keyspace, migration_master
 
+contact_point = contact_points[0]
 cluster = None
 session = None
 
@@ -64,17 +65,16 @@ def migrate():
         # Connect to Cassandra
         connect(keyspace)
 
-        # Determine the contact point
-        contact_point = contact_points[0]
-
         # Pull all migrations from the disk
         print('Loading migrations')
-        disk_migrations = os.listdir('db/migrations')  # Remove non-.cql files from the list of migrations
 
+        # Load migrations from disk
+        disk_migrations = os.listdir('db/migrations')
         for disk_migration in disk_migrations:
             if not disk_migration.endswith(".cql"):
-                disk_migrations.remove(disk_migration)  # Pull all migrations from C*
+                disk_migrations.remove(disk_migration)
 
+        # Pull all migrations from C*
         results = session.execute('SELECT * FROM {}.migrations'.format(keyspace))
         for row in results:  # Remove any disk migration that matches this record
             disk_migrations.remove(row.migration)
@@ -97,7 +97,54 @@ def migrate():
         else:
             print('All migrations have already been run.')
 
+        dump_schema()
+
     disconnect()
+
+
+@task
+def dump_schema():
+    schema = check_output("cqlsh -k {} -e \"DESCRIBE KEYSPACE\" {}".format(keyspace, contact_point), shell=True,
+                          universal_newlines=True)
+    schema_file = open('db/schema.cql', 'w')
+    schema_file.write(schema)
+    schema_file.close()
+
+
+@task
+def load_schema():
+    print('Verifying keyspace is not present')
+    connect('system')
+    rows = session.execute("SELECT * FROM schema_keyspaces WHERE keyspace_name = %s", [keyspace])
+    if len(rows) > 0:
+        disconnect()
+        print('Keyspace already exists. Drop it first with cassandra.drop then try again')
+    else:
+        disconnect()
+        print('Loading the schema in db/schema.cql')
+
+        command = 'cqlsh -f db/schema.cql {}'.format(contact_point)
+        status = call(command, shell=True)
+
+        if status == 0:
+            print('Load successful. Updating migrations table')
+            connect(keyspace)
+
+            # Load migrations from disk
+            disk_migrations = os.listdir('db/migrations')  # Remove non-.cql files from the list of migrations
+            for disk_migration in disk_migrations:
+                if not disk_migration.endswith(".cql"):
+                    disk_migrations.remove(disk_migration)
+
+            # Write each migration into the migrations table
+            insert_statement = session.prepare('INSERT INTO {}.migrations (migration) VALUES (?)'.format(keyspace))
+            for disk_migration in disk_migrations:
+                session.execute(insert_statement, [disk_migration])
+
+            disconnect()
+        else:
+            print('Errors while loading schema.cql')
+
 
 @task(help={'name':"Name of the migration. Ex: add_users_table"})
 def add_migration(name):
