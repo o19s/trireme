@@ -1,4 +1,38 @@
+# Backup files
+*.~
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environment
 venv
-__pycache__
+
+# IDE files
 .idea
-db/config.py
+
+# Test config file, we only distribute the example.
+config.py
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
