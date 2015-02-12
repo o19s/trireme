@@ -3,7 +3,7 @@ import os
 from subprocess import call, check_output
 from cassandra.cluster import Cluster
 import datetime
-from db.config import contact_points, keyspace, migration_master
+from config import contact_points, keyspace, migration_master
 
 contact_point = contact_points[0]
 cluster = None
