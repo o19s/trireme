@@ -1,7 +1,7 @@
 from invoke import task
 import requests
 import os
-from db.config import solr_url
+from config import solr_url
 
 
 def upload_file(local_path, remote_path):
