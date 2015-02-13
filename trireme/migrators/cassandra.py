@@ -2,8 +2,9 @@ from invoke import task
 import os
 from subprocess import call, check_output
 from cassandra.cluster import Cluster
+from cassandra.auth import PlainTextAuthProvider
 import datetime
-from config import contact_points, keyspace, migration_master
+from config import contact_points, keyspace, migration_master, username, password
 
 contact_point = contact_points[0]
 cluster = None
@@ -13,13 +14,40 @@ session = None
 def connect(migration_keyspace):
     global cluster, session
 
+    # Setup the auth provider
+    auth_provider = PlainTextAuthProvider(username=username, password=password)
+
     # Contact to Cassandra
-    cluster = Cluster(contact_points)
+    cluster = Cluster(contact_points, auth_provider=auth_provider)
     session = cluster.connect(migration_keyspace)
+
 
 def disconnect():
     session.shutdown()
     cluster.shutdown()
+
+
+def authentication_enabled():
+    return username and password
+
+
+def cqlsh_command(**kwargs):
+    # Start out with the base command
+    command = "cqlsh"
+
+    # Add authentication
+    if authentication_enabled():
+        kwargs['u'] = username
+        kwargs['p'] = password
+
+    # Add additional arguments
+    for key in kwargs.keys():
+        command += " -{} \"{}\"".format(key, kwargs[key])
+
+    # Specify the host
+    command += " {}".format(contact_point)
+
+    return command
 
 @task
 def create():
@@ -88,7 +116,8 @@ def migrate():
             for migration in disk_migrations:
                 if migration.endswith(".cql"):
                     print('Running migration: {}'.format(migration))
-                    command = 'cqlsh -f db/migrations/{} -k {} {}'.format(migration, keyspace, contact_point)
+
+                    command = cqlsh_command(f="db/migrations/{}".format(migration),k=keyspace)
 
                     status = call(command, shell=True)
 
@@ -104,7 +133,9 @@ def migrate():
 
 @task
 def dump_schema():
-    schema = check_output("cqlsh -k {} -e \"DESCRIBE KEYSPACE\" {}".format(keyspace, contact_point), shell=True,
+    command = cqlsh_command(k=keyspace,e="DESCRIBE KEYSPACE {}".format(keyspace))
+
+    schema = check_output(command, shell=True,
                           universal_newlines=True)
     schema_file = open('db/schema.cql', 'w')
     schema_file.write(schema)
@@ -123,7 +154,8 @@ def load_schema():
         disconnect()
         print('Loading the schema in db/schema.cql')
 
-        command = 'cqlsh -f db/schema.cql {}'.format(contact_point)
+        command = cqlsh_command(f='db/schema.cql')
+
         status = call(command, shell=True)
 
         if status == 0:
