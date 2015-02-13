@@ -34,20 +34,14 @@ def create(core=None):
     for core in cores:
         print('Creating Core {}'.format(core))
 
-        print('Uploading schema.xml')
-        response = upload_file('db/solr/{}/schema.xml'.format(core), '{}/resource/{}/schema.xml'.format(solr_url, core))
-        if response.status_code == 200:
-            print("SUCCESS")
-        else:
-            raise RuntimeError('Error uploading schema.xml')
-
-        print('Uploading solrconfig.xml')
-        response = upload_file('db/solr/{}/solrconfig.xml'.format(core), '{}/resource/{}/solrconfig.xml'.format(
-            solr_url, core))
-        if response.status_code == 200:
-            print("SUCCESS")
-        else:
-            raise RuntimeError('Error uploading solrconfig.xml')
+        core_files = os.listdir('db/solr/{}'.format(core))
+        for core_file in core_files:
+            print('Uploading {}'.format(core_file))
+            response = upload_file('db/solr/{}/{}'.format(core, core_file), '{}/resource/{}/{}'.format(solr_url, core, core_file))
+            if response.status_code == 200:
+                print("SUCCESS")
+            else:
+                raise RuntimeError('Error uploading {}'.format(core_file))
 
         response = requests.get('{}/admin/cores?action=CREATE&name={}'.format(solr_url, core))
         if response.status_code == 200:
@@ -65,19 +59,14 @@ def migrate(core=None):
     for core in cores:
         print('Updating Core {}'.format(core))
 
-        print('Uploading schema.xml')
-        response = upload_file('db/solr/{}/schema.xml'.format(core), '{}/resource/{}/schema.xml'.format(solr_url, core))
-        if response.status_code == 200:
-            print("SUCCESS")
-        else:
-            raise RuntimeError('Error uploading schema.xml')
-
-        print('Uploading solrconfig.xml')
-        response = upload_file('db/solr/{}/solrconfig.xml'.format(core), '{}/resource/{}/solrconfig.xml'.format(solr_url, core))
-        if response.status_code == 200:
-            print("SUCCESS")
-        else:
-            raise RuntimeError('Error uploading solrconfig.xml')
+        core_files = os.listdir('db/solr/{}'.format(core))
+        for core_file in core_files:
+            print('Uploading {}'.format(core_file))
+            response = upload_file('db/solr/{}/{}'.format(core, core_file), '{}/resource/{}/{}'.format(solr_url, core, core_file))
+            if response.status_code == 200:
+                print("SUCCESS")
+            else:
+                raise RuntimeError('Error uploading {}'.format(core_file))
 
         print('Reloading core')
         response = requests.get('{}/admin/cores?action=RELOAD&name={}'.format(solr_url, core))
