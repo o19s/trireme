@@ -1,12 +1,15 @@
 from invoke import task
+from requests.auth import HTTPBasicAuth
 import requests
 import os
-from config import solr_url
+from config import solr_url, username, password
+
+auth = HTTPBasicAuth(username, password)
 
 
 def upload_file(local_path, remote_path):
     fd = open(local_path, 'r')
-    response = requests.post(remote_path, data=fd)
+    response = requests.post(remote_path, data=fd, auth=auth)
     fd.close()
     return response
 
@@ -43,7 +46,7 @@ def create(core=None):
             else:
                 raise RuntimeError('Error uploading {}'.format(core_file))
 
-        response = requests.get('{}/admin/cores?action=CREATE&name={}'.format(solr_url, core))
+        response = requests.get('{}/admin/cores?action=CREATE&name={}'.format(solr_url, core), auth=auth)
         if response.status_code == 200:
             print('Core created, you may view the status in the web interface')
 
@@ -69,7 +72,7 @@ def migrate(core=None):
                 raise RuntimeError('Error uploading {}'.format(core_file))
 
         print('Reloading core')
-        response = requests.get('{}/admin/cores?action=RELOAD&name={}'.format(solr_url, core))
+        response = requests.get('{}/admin/cores?action=RELOAD&name={}'.format(solr_url, core), auth=auth)
         if response.status_code == 200:
             print('Successfully reloaded Solr core')
 

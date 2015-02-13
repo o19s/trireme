@@ -49,6 +49,7 @@ def cqlsh_command(**kwargs):
 
     return command
 
+
 @task
 def create():
     if migration_master:
@@ -117,7 +118,7 @@ def migrate():
                 if migration.endswith(".cql"):
                     print('Running migration: {}'.format(migration))
 
-                    command = cqlsh_command(f="db/migrations/{}".format(migration),k=keyspace)
+                    command = cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace)
 
                     status = call(command, shell=True)
 
@@ -133,7 +134,7 @@ def migrate():
 
 @task
 def dump_schema():
-    command = cqlsh_command(k=keyspace,e="DESCRIBE KEYSPACE {}".format(keyspace))
+    command = cqlsh_command(k=keyspace, e="DESCRIBE KEYSPACE {}".format(keyspace))
 
     schema = check_output(command, shell=True,
                           universal_newlines=True)
