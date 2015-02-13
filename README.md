@@ -27,6 +27,10 @@ To use this tool within the scope of your project follow these steps.
 
    # Keyspace to work with, this doesn't have to exist yet.
    keyspace = "foo"
+   
+   # Authentication Information
+   username = None
+   password = None
 
    # Flag indicating whether this host is the migration master. Migrations are only run on the migration master
    migration_master = True
