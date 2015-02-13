@@ -1,6 +1,5 @@
-from invoke import task
+from invoke import task, run
 import os
-from subprocess import call, check_output
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 import datetime
@@ -118,11 +117,9 @@ def migrate():
                 if migration.endswith(".cql"):
                     print('Running migration: {}'.format(migration))
 
-                    command = cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace)
+                    result = run(cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace), hide='stdout')
 
-                    status = call(command, shell=True)
-
-                    if status == 0:
+                    if result.ok:
                         session.execute(insert_statement, [migration])
         else:
             print('All migrations have already been run.')
@@ -134,12 +131,9 @@ def migrate():
 
 @task
 def dump_schema():
-    command = cqlsh_command(k=keyspace, e="DESCRIBE KEYSPACE {}".format(keyspace))
-
-    schema = check_output(command, shell=True,
-                          universal_newlines=True)
+    result = run(cqlsh_command(k=keyspace, e="DESCRIBE KEYSPACE {}".format(keyspace)), hide='stdout')
     schema_file = open('db/schema.cql', 'w')
-    schema_file.write(schema)
+    schema_file.write(result.stdout)
     schema_file.close()
 
 
@@ -155,11 +149,9 @@ def load_schema():
         disconnect()
         print('Loading the schema in db/schema.cql')
 
-        command = cqlsh_command(f='db/schema.cql')
+        result = run(cqlsh_command(f='db/schema.cql'), hide='stdout')
 
-        status = call(command, shell=True)
-
-        if status == 0:
+        if result.ok:
             print('Load successful. Updating migrations table')
             connect(keyspace)
 
@@ -179,7 +171,7 @@ def load_schema():
             print('Errors while loading schema.cql')
 
 
-@task(help={'name':"Name of the migration. Ex: add_users_table"})
+@task(help={'name': "Name of the migration. Ex: add_users_table"})
 def add_migration(name):
     if name:
         timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M')
