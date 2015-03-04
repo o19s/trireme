@@ -4,7 +4,7 @@
 contact_points = ["127.0.0.1"]
 
 # Keyspace to work with, this doesn't have to exist yet.
-keyspace = "foo"
+keyspace = 'foo'
 
 # Authentication Information
 username = None
@@ -15,5 +15,5 @@ migration_master = True
 
 
 # Solr Configuration
-solr_url = "http://127.0.0.1:8983/solr"
+solr_url = 'http://127.0.0.1:8983/solr'
 

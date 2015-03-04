@@ -32,7 +32,7 @@ def authentication_enabled():
 
 def cqlsh_command(**kwargs):
     # Start out with the base command
-    command = "cqlsh"
+    command = 'cqlsh'
 
     # Add authentication
     if authentication_enabled():
@@ -56,18 +56,18 @@ def create():
         connect('system')
 
         # Create the keyspace, we use simple defaults (SimpleStrategy, RF: 2)
-        print('Creating keyspace {}'.format(keyspace))
-        session.execute('CREATE KEYSPACE IF NOT EXISTS {} '
-                        'WITH REPLICATION = {{'
-                        '\'class\': \'NetworkTopologyStrategy\', '
-                        '\'Solr\': 1, '
-                        '\'Cassandra\': 1, '
-                        '\'Analytics\': 1}}'.format(keyspace))
+        print("Creating keyspace {}".format(keyspace))
+        session.execute("CREATE KEYSPACE IF NOT EXISTS {} "
+                        "WITH REPLICATION = {{"
+                        "'class': 'NetworkTopologyStrategy', "
+                        "'Solr': 1, "
+                        "'Cassandra': 1, "
+                        "'Analytics': 1}}".format(keyspace))
 
         # Add the migrations table transparently, this will track which migrations have been run
-        session.execute('CREATE TABLE IF NOT EXISTS {}.migrations ('
-                        'migration text, '
-                        'PRIMARY KEY(migration));'.format(keyspace))
+        session.execute("CREATE TABLE IF NOT EXISTS {}.migrations ("
+                        "migration text, "
+                        "PRIMARY KEY(migration));".format(keyspace))
 
         # Provide some help text, as most installs will not use SimpleStrategy for replication
         print('Keyspace created')
@@ -82,8 +82,8 @@ def drop():
         connect(keyspace)
 
         # Drop the keyspace
-        print('Dropping keyspace {}'.format(keyspace))
-        session.execute('DROP KEYSPACE {}'.format(keyspace))
+        print("Dropping keyspace {}".format(keyspace))
+        session.execute("DROP KEYSPACE {}".format(keyspace))
 
         disconnect()
 
@@ -99,23 +99,23 @@ def migrate():
         # Load migrations from disk
         disk_migrations = os.listdir('db/migrations')
         for disk_migration in disk_migrations:
-            if not disk_migration.endswith(".cql"):
+            if not disk_migration.endswith('.cql'):
                 disk_migrations.remove(disk_migration)
 
         # Pull all migrations from C*
-        results = session.execute('SELECT * FROM {}.migrations'.format(keyspace))
+        results = session.execute("SELECT * FROM {}.migrations".format(keyspace))
         for row in results:  # Remove any disk migration that matches this record
             disk_migrations.remove(row.migration)
 
         if len(disk_migrations) > 0:  # Sort the disk migrations, to ensure they are run in order
             disk_migrations.sort()  # Prepare the migrations table insert statement
 
-            insert_statement = session.prepare('INSERT INTO {}.migrations (migration) VALUES (?)'.format(keyspace))
+            insert_statement = session.prepare("INSERT INTO {}.migrations (migration) VALUES (?)".format(keyspace))
 
             # Iterate over remaining migrations and run them
             for migration in disk_migrations:
-                if migration.endswith(".cql"):
-                    print('Running migration: {}'.format(migration))
+                if migration.endswith('.cql'):
+                    print("Running migration: {}".format(migration))
 
                     result = run(cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace), hide='stdout')
 
@@ -141,7 +141,7 @@ def dump_schema():
 def load_schema():
     print('Verifying keyspace is not present')
     connect('system')
-    rows = session.execute("SELECT * FROM schema_keyspaces WHERE keyspace_name = %s", [keyspace])
+    rows = session.execute('SELECT * FROM schema_keyspaces WHERE keyspace_name = %s', [keyspace])
     if len(rows) > 0:
         disconnect()
         print('Keyspace already exists. Drop it first with cassandra.drop then try again')
@@ -158,11 +158,11 @@ def load_schema():
             # Load migrations from disk
             disk_migrations = os.listdir('db/migrations')  # Remove non-.cql files from the list of migrations
             for disk_migration in disk_migrations:
-                if not disk_migration.endswith(".cql"):
+                if not disk_migration.endswith('.cql'):
                     disk_migrations.remove(disk_migration)
 
             # Write each migration into the migrations table
-            insert_statement = session.prepare('INSERT INTO {}.migrations (migration) VALUES (?)'.format(keyspace))
+            insert_statement = session.prepare("INSERT INTO {}.migrations (migration) VALUES (?)".format(keyspace))
             for disk_migration in disk_migrations:
                 session.execute(insert_statement, [disk_migration])
 
@@ -171,14 +171,14 @@ def load_schema():
             print('Errors while loading schema.cql')
 
 
-@task(help={'name': "Name of the migration. Ex: add_users_table"})
+@task(help={'name': 'Name of the migration. Ex: add_users_table'})
 def add_migration(name):
     if name:
         timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M')
-        path = 'db/migrations/{}_{}.cql'.format(timestamp, name)
+        path = "db/migrations/{}_{}.cql".format(timestamp, name)
         fd = open(path, 'w')
         fd.close()
 
-        print('Created migration: {}'.format(path))
+        print("Created migration: {}".format(path))
     else:
-        print("Call add_migration with the --name parameter specifying a name for the migration. Ex: add_users_table")
+        print('Call add_migration with the --name parameter specifying a name for the migration. Ex: add_users_table')
