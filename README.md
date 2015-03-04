@@ -23,10 +23,10 @@ To use this tool within the scope of your project follow these steps.
    # Cassandra Configuration
    
    # Contact points for your cluster, currently only the first is used
-   contact_points = ["127.0.0.1"]
+   contact_points = ['127.0.0.1']
 
    # Keyspace to work with, this doesn't have to exist yet.
-   keyspace = "foo"
+   keyspace = 'foo'
    
    # Authentication Information
    username = None
@@ -37,7 +37,7 @@ To use this tool within the scope of your project follow these steps.
 
 
    # Solr Configuration
-   solr_url = "http://127.0.0.1:8983/solr"
+   solr_url = 'http://127.0.0.1:8983/solr'
    ```
 
 4. Run the trireme setup task to create the basic directories
