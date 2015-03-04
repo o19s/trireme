@@ -87,6 +87,7 @@ def drop():
 
         disconnect()
 
+
 @task
 def migrate():
     if migration_master:

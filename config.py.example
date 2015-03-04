@@ -16,4 +16,3 @@ migration_master = True
 
 # Solr Configuration
 solr_url = 'http://127.0.0.1:8983/solr'
-

@@ -2,6 +2,7 @@ import os
 from invoke import Collection, task
 from trireme.migrators import cassandra, solr
 
+
 @task
 def setup():
     # Create the necessary directories
@@ -11,4 +12,3 @@ def setup():
 
 ns = Collection(cassandra, solr)
 ns.add_task(setup)
-
