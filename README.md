@@ -107,7 +107,7 @@ db/
 ```
 
 ### db/solr
-Folder containing all Solr core configuration files. With DataStax Enterprise the core name is comprised of the keyspace and table name in the format *keyspace.table_name*. Within this directory we house sub-directories for each core. These directories in turn have the ```schema.xml``` and ```solrconfig.xml``` files needed for configuring the core.
+Folder containing all the Solr core configuration files. With DataStax Enterprise the core name is comprised of the keyspace and table name in the format *keyspace.table_name*. Within this directory we house sub-directories for each core. These directories in turn have the ```schema.xml``` and ```solrconfig.xml``` files needed for configuring the core.
 
 Example directory layout:
 
@@ -149,5 +149,5 @@ Collects all of the Invoke tasks into a common namespace along with a simple set
 * invoke - Task execution tool & library. This is used to run the exposed migration tasks
 
 ## Extending Trireme
-Adding a new migrator involves placing the code with invoke annotations in a file within the migrators directory. Next add your migrator to the ```Collection``` entry in ```trireme.py```. If you create a new migrator and would like to share it with the community fork the repo, add your migrator, then open a pull request.
+Adding a new migrator involves placing the code to invoke annotations in a file within the migrators directory. Next add your migrator to the ```Collection``` entry in ```trireme.py```. If you create a new migrator and would like to share it with the community, please fork the repo, add your migrator, and then open a pull request.
 
