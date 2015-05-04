@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 from invoke import Collection, task
 from trireme.migrators import cassandra, solr

@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from invoke import task
 from requests.auth import HTTPBasicAuth
 import requests
