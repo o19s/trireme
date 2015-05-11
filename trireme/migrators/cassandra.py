@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from invoke import task, run
 import os
 from cassandra.cluster import Cluster
