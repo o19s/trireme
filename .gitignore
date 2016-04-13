@@ -30,8 +30,9 @@ venv
 # IDE files
 .idea
 
-# Test config file, we only distribute the example.
+# Test files, we only distribute the example.
 config.py
+tasks.py
 
 # Installer logs
 pip-log.txt

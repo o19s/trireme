@@ -4,12 +4,12 @@ import os
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 import datetime
-from config import contact_points, keyspace, migration_master, username, password
+from config import contact_points, keyspace, migration_master, username, password, replication
+import json
 
 contact_point = contact_points[0]
 cluster = None
 session = None
-
 
 def connect(migration_keyspace):
     global cluster, session
@@ -56,22 +56,18 @@ def create():
         # Note we use the system keyspace in connect call since the target keyspace doesn't exist yet.
         connect('system')
 
-        # Create the keyspace, we use simple defaults (SimpleStrategy, RF: 2)
-        print("Creating keyspace {}".format(keyspace))
+        # Create the keyspace
+        replication_string = json.dumps(replication).replace('"', "'")
+        print("Creating keyspace {} with replication options: {}".format(keyspace, replication_string))
         session.execute("CREATE KEYSPACE IF NOT EXISTS {} "
-                        "WITH REPLICATION = {{"
-                        "'class': 'NetworkTopologyStrategy', "
-                        "'Solr': 1, "
-                        "'Cassandra': 1, "
-                        "'Analytics': 1}}".format(keyspace))
+                        "WITH REPLICATION = {}".format(keyspace, replication_string))
 
         # Add the migrations table transparently, this will track which migrations have been run
         session.execute("CREATE TABLE IF NOT EXISTS {}.migrations ("
                         "migration text, "
                         "PRIMARY KEY(migration));".format(keyspace))
-
-        # Provide some help text, as most installs will not use SimpleStrategy for replication
-        print('Keyspace created')
+        
+        print('Keyspace {} created'.format(keyspace))
 
         disconnect()
 
