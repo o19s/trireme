@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 from invoke import task, run
 import os
+from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
+from cassandra.query import BatchStatement, SimpleStatement
 import datetime
 from config import contact_points, keyspace, migration_master, username, password, replication
 import json
@@ -10,6 +12,7 @@ import json
 contact_point = contact_points[0]
 cluster = None
 session = None
+
 
 def connect(migration_keyspace):
     global cluster, session
@@ -115,10 +118,24 @@ def migrate():
                 if migration.endswith('.cql'):
                     print("Running migration: {}".format(migration))
 
-                    result = run(cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace), hide='stdout')
+                    # result = run(cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace), hide='stdout')
+                    with open("db/migrations/{}".format(migration), 'r') as f:
+                        #TODO: Fix with real cql statement parsing.  It is
+                        #included in the cqlsh python lib but not easily
+                        #extracted.
+                        queries = f.read().split(';')
 
-                    if result.ok:
-                        session.execute(insert_statement, [migration])
+                        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+                        for query in queries:
+                            query = query.strip()
+                            if query:
+                                try:
+                                    session.execute(SimpleStatement(query))
+                                except Exception:
+                                    print('Query failed, migration partially applied: "{}"'.format(query))
+                                    raise
+                        session.execute(batch)
+                    session.execute(insert_statement, [migration])
         else:
             print('All migrations have already been run.')
 
@@ -129,10 +146,9 @@ def migrate():
 
 @task
 def dump_schema():
-    result = run(cqlsh_command(k=keyspace, e="DESCRIBE KEYSPACE {}".format(keyspace)), hide='stdout')
-    schema_file = open('db/schema.cql', 'w')
-    schema_file.write(result.stdout)
-    schema_file.close()
+    with open('db/schema.cql', 'w') as schema_file:
+        keyspace_info = cluster.metadata.keyspaces.get(keyspace)
+        schema_file.write(keyspace_info.export_as_string())
 
 
 @task
