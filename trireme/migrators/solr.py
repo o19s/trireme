@@ -3,7 +3,7 @@ from invoke import task
 from requests.auth import HTTPBasicAuth
 import requests
 import os
-from config import solr_url, username, password
+from trireme_config import solr_url, username, password
 
 auth = HTTPBasicAuth(username, password)
 
