@@ -53,99 +53,108 @@ def cqlsh_command(**kwargs):
     return command
 
 
+def master():
+    """
+    Fail if this is not the migration master.
+    """
+    if not migration_master:
+        raise Exception("Not the migration master (set migration_master=True)")
+
+
 @task
 def create():
-    if migration_master:
-        # Note we use the system keyspace in connect call since the target keyspace doesn't exist yet.
-        connect('system')
+    master()
+    # Note we use the system keyspace in connect call since the target keyspace doesn't exist yet.
+    connect('system')
 
-        # Create the keyspace
-        replication_string = json.dumps(replication).replace('"', "'")
-        print("Creating keyspace {} with replication options: {}".format(keyspace, replication_string))
-        session.execute("CREATE KEYSPACE IF NOT EXISTS {} "
-                        "WITH REPLICATION = {}".format(keyspace, replication_string))
+    # Create the keyspace
+    replication_string = json.dumps(replication).replace('"', "'")
+    print("Creating keyspace {} with replication options: {}".format(keyspace, replication_string))
+    session.execute("CREATE KEYSPACE IF NOT EXISTS {} "
+                    "WITH REPLICATION = {}".format(keyspace, replication_string))
 
-        # Add the migrations table transparently, this will track which migrations have been run
-        session.execute("CREATE TABLE IF NOT EXISTS {}.migrations ("
-                        "migration text, "
-                        "PRIMARY KEY(migration));".format(keyspace))
-        
-        print('Keyspace {} created'.format(keyspace))
+    # Add the migrations table transparently, this will track which migrations have been run
+    session.execute("CREATE TABLE IF NOT EXISTS {}.migrations ("
+                    "migration text, "
+                    "PRIMARY KEY(migration));".format(keyspace))
 
-        disconnect()
+    print('Keyspace {} created'.format(keyspace))
+
+    disconnect()
 
 
 @task
 def drop():
-    if migration_master:
-        # Connect to Cassandra
-        connect(keyspace)
+    master()
+    # Connect to Cassandra
+    connect(keyspace)
 
-        # Drop the keyspace
-        print("Dropping keyspace {}".format(keyspace))
-        session.execute("DROP KEYSPACE {}".format(keyspace))
+    # Drop the keyspace
+    print("Dropping keyspace {}".format(keyspace))
+    session.execute("DROP KEYSPACE {}".format(keyspace))
 
-        disconnect()
+    disconnect()
 
 
 @task
 def migrate():
-    if migration_master:
-        # Connect to Cassandra
-        connect(keyspace)
+    master()
+    # Connect to Cassandra
+    connect(keyspace)
 
-        # Pull all migrations from the disk
-        print('Loading migrations')
+    # Pull all migrations from the disk
+    print('Loading migrations')
 
-        # Load migrations from disk
-        disk_migrations = os.listdir('db/migrations')
-        for disk_migration in disk_migrations:
-            if not disk_migration.endswith('.cql'):
-                disk_migrations.remove(disk_migration)
+    # Load migrations from disk
+    disk_migrations = os.listdir('db/migrations')
+    for disk_migration in disk_migrations:
+        if not disk_migration.endswith('.cql'):
+            disk_migrations.remove(disk_migration)
 
-        # Pull all migrations from C*
-        results = session.execute("SELECT * FROM {}.migrations".format(keyspace))
-        for row in results:  # Remove any disk migration that matches this record
-            disk_migrations.remove(row.migration)
+    # Pull all migrations from C*
+    results = session.execute("SELECT * FROM {}.migrations".format(keyspace))
+    for row in results:  # Remove any disk migration that matches this record
+        disk_migrations.remove(row.migration)
 
-        if len(disk_migrations) > 0:  # Sort the disk migrations, to ensure they are run in order
-            disk_migrations.sort()  # Prepare the migrations table insert statement
+    if len(disk_migrations) > 0:  # Sort the disk migrations, to ensure they are run in order
+        disk_migrations.sort()  # Prepare the migrations table insert statement
 
-            insert_statement = session.prepare("INSERT INTO {}.migrations (migration) VALUES (?)".format(keyspace))
+        insert_statement = session.prepare("INSERT INTO {}.migrations (migration) VALUES (?)".format(keyspace))
 
-            # Iterate over remaining migrations and run them
-            for migration in disk_migrations:
-                if migration.endswith('.cql'):
-                    print("Running migration: {}".format(migration))
+        # Iterate over remaining migrations and run them
+        for migration in disk_migrations:
+            if migration.endswith('.cql'):
+                print("Running migration: {}".format(migration))
 
-                    # result = run(cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace), hide='stdout')
-                    with open("db/migrations/{}".format(migration), 'r') as f:
-                        #TODO: Fix with real cql statement parsing.  It is
-                        #included in the cqlsh python lib but not easily
-                        #extracted.
-                        queries = f.read().split(';')
+                # result = run(cqlsh_command(f="db/migrations/{}".format(migration), k=keyspace), hide='stdout')
+                with open("db/migrations/{}".format(migration), 'r') as f:
+                    #TODO: Fix with real cql statement parsing.  It is
+                    #included in the cqlsh python lib but not easily
+                    #extracted.
+                    queries = f.read().split(';')
 
-                        batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
-                        for query in queries:
-                            query = query.strip()
-                            if query:
-                                try:
-                                    session.execute(SimpleStatement(query))
-                                except Exception:
-                                    print('Query failed, migration partially applied: "{}"'.format(query))
-                                    raise
-                        session.execute(batch)
-                    session.execute(insert_statement, [migration])
-        else:
-            print('All migrations have already been run.')
+                    batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
+                    for query in queries:
+                        query = query.strip()
+                        if query:
+                            try:
+                                session.execute(SimpleStatement(query))
+                            except Exception:
+                                print('Query failed, migration partially applied: "{}"'.format(query))
+                                raise
+                    session.execute(batch)
+                session.execute(insert_statement, [migration])
+    else:
+        print('All migrations have already been run.')
 
-        dump_schema()
+    dump_schema()
 
     disconnect()
 
 
 @task
 def dump_schema():
+    master()
     with open('db/schema.cql', 'w') as schema_file:
         keyspace_info = cluster.metadata.keyspaces.get(keyspace)
         schema_file.write(keyspace_info.export_as_string())
@@ -153,6 +162,7 @@ def dump_schema():
 
 @task
 def load_schema():
+    master()
     print('Verifying keyspace is not present')
     connect('system')
     rows = session.execute('SELECT * FROM schema_keyspaces WHERE keyspace_name = %s', [keyspace])
@@ -187,6 +197,7 @@ def load_schema():
 
 @task(help={'name': 'Name of the migration. Ex: add_users_table'})
 def add_migration(name):
+    master()
     if name:
         timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M')
         path = "db/migrations/{}_{}.cql".format(timestamp, name)
