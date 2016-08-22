@@ -6,7 +6,7 @@ from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.query import BatchStatement, SimpleStatement
 import datetime
-from config import contact_points, keyspace, migration_master, username, password, replication
+from trireme_config import contact_points, keyspace, migration_master, username, password, replication
 import json
 
 contact_point = contact_points[0]
