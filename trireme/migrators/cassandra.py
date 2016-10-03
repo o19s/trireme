@@ -17,6 +17,7 @@ session = None
 def connect(migration_keyspace):
     global cluster, session
 
+    print("contact points: {}".format(contact_points))
     # Setup the auth provider
     auth_provider = PlainTextAuthProvider(username=username, password=password)
 
