@@ -96,7 +96,7 @@ def add_migration(name):
     master()
     if name:
         timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M')
-        path = "db/migrations/{}_{}.py".format(timestamp, name)
+        path = "db/data/{}_{}.py".format(timestamp, name)
         fd = open(path, 'w')
         fd.close()
 
