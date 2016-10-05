@@ -58,7 +58,7 @@ def migrate():
     print('Loading migrations')
 
     # Load migrations from disk
-    disk_migrations = os.listdir('db/migrations')
+    disk_migrations = os.listdir('db/data')
     for disk_migration in disk_migrations:
         if not disk_migration.endswith('.py'):
             disk_migrations.remove(disk_migration)
@@ -79,10 +79,12 @@ def migrate():
             if migration.endswith('.py'):
                 print("Running migration: {}".format(migration))
 
-                cmd = ["/app/.heroku/python/bin/python", "/app/migrations/migapp/app.py"]
-                returncode = subprocess.call(cmd, cwd='/app/db/trireme', env={'PYTHONPATH': '/app', 'ENVIRONMENT': os.getenv('ENVIRONMENT')})
-                if returncode != 0:
-                    print("Script returned {}. Migration partially applied.".format(returncode))
+                cmd = ["/app/.heroku/python/bin/python", migration]
+                result = subprocess.run(cmd, cwd='/app/db/trireme/db/data', env={'PYTHONPATH': '/app', 'ENVIRONMENT': os.getenv('ENVIRONMENT')}, stdout=subprocess.PIPE)
+                if result.returncode != 0:
+                    print("Script returned {}. Migration partially applied.".format(result.returncode))
+                    print("Script output:")
+                    print(result.stdout.decode('utf-8'))
                 else:
                     session.execute(insert_statement, [migration])
     else:
