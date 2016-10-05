@@ -66,7 +66,8 @@ def migrate():
     # Pull all migrations from C*
     results = session.execute("SELECT * FROM {}.migrations".format(keyspace))
     for row in results:  # Remove any disk migration that matches this record
-        disk_migrations.remove(row.migration)
+        if row.migration in disk_migrations:
+            disk_migrations.remove(row.migration)
 
     if len(disk_migrations) > 0:  # Sort the disk migrations, to ensure they are run in order
         disk_migrations.sort()  # Prepare the migrations table insert statement
