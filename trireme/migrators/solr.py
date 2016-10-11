@@ -3,7 +3,7 @@ from invoke import task
 from requests.auth import HTTPBasicAuth
 import requests
 import os
-from config import solr_url, username, password
+from trireme_config import solr_url, username, password
 
 auth = HTTPBasicAuth(username, password)
 
@@ -27,8 +27,17 @@ def find_cores():
     return cores
 
 
+def master():
+    """
+    Fail if this is not the migration master.
+    """
+    if not migration_master:
+        raise Exception("Not the migration master (set migration_master=True)")
+
+
 @task(help={'core': 'Name of the core to run against. Omitting this value will create all cores'})
 def create(core=None):
+    master()
     cores = []
     if core:
         cores.append(core)
@@ -55,6 +64,7 @@ def create(core=None):
 
 @task(help={'core': 'Name of the core to run against. Omitting this value will create all cores'})
 def migrate(core=None):
+    master()
     cores = []
     if core:
         cores.append(core)
@@ -82,6 +92,7 @@ def migrate(core=None):
 
 @task(help={'name': 'Name of the core you want to create'})
 def add_core(name):
+    master()
     if name:
         path = "db/solr/{}".format(name)
         if os.path.exists(path):
