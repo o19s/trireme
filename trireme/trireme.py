@@ -5,7 +5,7 @@ from trireme.migrators import cassandra, solr, data
 
 
 @task
-def setup():
+def setup(ctx):
     # Create the necessary directories
     directories = ['db', 'db/solr', 'db/migrations', 'db/data']
     for directory in directories:

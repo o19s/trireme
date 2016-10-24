@@ -63,7 +63,7 @@ def master():
 
 
 @task
-def create():
+def create(ctx):
     master()
     # Note we use the system keyspace in connect call since the target keyspace doesn't exist yet.
     connect('system')
@@ -85,7 +85,7 @@ def create():
 
 
 @task
-def drop():
+def drop(ctx):
     master()
     # Connect to Cassandra
     connect(keyspace)
@@ -98,7 +98,7 @@ def drop():
 
 
 @task
-def migrate():
+def migrate(ctx):
     master()
     # Connect to Cassandra
     connect(keyspace)
@@ -154,7 +154,7 @@ def migrate():
 
 
 @task
-def dump_schema():
+def dump_schema(ctx):
     master()
     with open('db/schema.cql', 'w') as schema_file:
         keyspace_info = cluster.metadata.keyspaces.get(keyspace)
@@ -162,7 +162,7 @@ def dump_schema():
 
 
 @task
-def load_schema():
+def load_schema(ctx):
     master()
     print('Verifying keyspace is not present')
     connect('system')
@@ -197,7 +197,7 @@ def load_schema():
 
 
 @task(help={'name': 'Name of the migration. Ex: add_users_table'})
-def add_migration(name):
+def add_migration(ctx, name):
     master()
     if name:
         timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M')

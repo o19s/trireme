@@ -49,7 +49,7 @@ def master():
 
 
 @task
-def migrate():
+def migrate(ctx):
     master()
     # Connect to Cassandra
     connect(keyspace)
@@ -94,7 +94,7 @@ def migrate():
 
 
 @task(help={'name': 'Name of the migration. Ex: update_users_session'})
-def add_migration(name):
+def add_migration(ctx, name):
     master()
     if name:
         timestamp = datetime.datetime.now().strftime('%Y%m%d%H%M')

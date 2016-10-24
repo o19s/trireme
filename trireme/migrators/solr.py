@@ -36,7 +36,7 @@ def master():
 
 
 @task(help={'core': 'Name of the core to run against. Omitting this value will create all cores'})
-def create(core=None):
+def create(ctx, core=None):
     master()
     cores = []
     if core:
@@ -63,7 +63,7 @@ def create(core=None):
 
 
 @task(help={'core': 'Name of the core to run against. Omitting this value will create all cores'})
-def migrate(core=None):
+def migrate(ctx, core=None):
     master()
     cores = []
     if core:
@@ -91,7 +91,7 @@ def migrate(core=None):
 
 
 @task(help={'name': 'Name of the core you want to create'})
-def add_core(name):
+def add_core(ctx, name):
     master()
     if name:
         path = "db/solr/{}".format(name)
