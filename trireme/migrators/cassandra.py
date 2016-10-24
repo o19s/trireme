@@ -148,7 +148,7 @@ def migrate(ctx):
     else:
         print('All migrations have already been run.')
 
-    dump_schema()
+    dump_schema(ctx)
 
     disconnect()
 
