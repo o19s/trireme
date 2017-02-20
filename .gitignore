@@ -31,7 +31,7 @@ venv
 .idea
 
 # Test files, we only distribute the example.
-config.py
+trireme_config.py
 tasks.py
 
 # Installer logs

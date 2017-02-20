@@ -18,7 +18,7 @@ To use this tool within the scope of your project follow these steps.
    namespace = Collection(trireme)
    ```
 
-3. Create a ```config.py``` file with your Cassandra and Solr information.
+3. Create a ```trireme_config.py``` file with your Cassandra and Solr information.
    
    ```python
    # Cassandra Configuration
@@ -146,8 +146,6 @@ Collects all of the Invoke tasks into a common namespace along with a simple set
 *All required items have been specified in ```requirements.txt``` and 
 ```setup.py```. Select items are outlined below.*
 
-* blist - Replacement for Python's list, used by the C* driver, if ignored the driver will complain about using a pure python version.
-* lz4 - Compression used by the C* driver
 * cassandra-driver - DataStax driver for connecting with Cassandra, used when creating and dropping keyspaces
 * requests - HTTP Client, used when communicating with the Solr APIs
 * invoke - Task execution tool & library. This is used to run the exposed migration tasks
