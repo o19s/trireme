@@ -2,13 +2,13 @@ from setuptools import setup, find_packages  # Always prefer setuptools over dis
 
 setup(
     name='trireme',
-    version='1.2.0',
+    version='1.3.0',
 
     description='Migration tool providing support for Apache Cassandra, DataStax Enterprise Cassandra, & DataStax '
                 'Enterprise Solr.',
 
     url='https://github.com/o19s/trireme',
-    download_url='https://github.com/o19s/trireme/tarball/1.2.0',
+    download_url='https://github.com/o19s/trireme/tarball/1.3.0',
 
     author='Christopher Bradford',
     author_email='cbradford@opensourceconnections.com',
