@@ -79,8 +79,8 @@ def migrate(ctx):
             if migration.endswith('.py'):
                 print("Running migration: {}".format(migration))
 
-                cmd = ["/app/.heroku/python/bin/python", migration]
-                result = subprocess.run(cmd, cwd='/app/db/trireme/db/data', env={'PYTHONPATH': '/app', 'ENVIRONMENT': os.getenv('ENVIRONMENT')}, stdout=subprocess.PIPE)
+                cmd = ["python", migration]
+                result = subprocess.run(cmd, cwd='db/data', env={'PYTHONPATH': os.getenv('PYTHONPATH'), 'ENVIRONMENT': os.getenv('ENVIRONMENT')}, stdout=subprocess.PIPE)
                 if result.returncode != 0:
                     print("Script returned {}. Migration partially applied.".format(result.returncode))
                     print("Script output:")
