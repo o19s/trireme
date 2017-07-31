@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from invoke import task, run
 import os
+import re
 from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
@@ -132,7 +133,8 @@ def migrate(ctx):
                     #TODO: Fix with real cql statement parsing.  It is
                     #included in the cqlsh python lib but not easily
                     #extracted.
-                    queries = f.read().split(';')
+                    STATEMENT_PATTERN = re.compile(r'''((?:[^;"']|"[^"]*"|'[^']*')+)''')
+                    queries = STATEMENT_PATTERN.split(f.read())[1::2]
 
                     batch = BatchStatement(consistency_level=ConsistencyLevel.QUORUM)
                     for query in queries:
