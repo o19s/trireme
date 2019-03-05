@@ -2,6 +2,8 @@
 
 Trireme is a tool providing migration support for Apache Cassandra, DataStax Enterprise Cassandra & Solr. Commands are run using the Python [Invoke](https://github.com/pyinvoke/invoke) CLI tool.
 
+_Update: March 2019 - We are no longer maintaining this Gem.  Please contact epugh@opensourceconnections.com if you would like to take over this project._
+
 ## System Dependencies
 * ```cqlsh``` must be on the ```PATH```. Some tasks utilize the ```cqlsh``` tool for running scripts and dumping schemas to disk.
 
@@ -14,15 +16,15 @@ To use this tool within the scope of your project follow these steps.
    ```python
    from invoke import Collection
    from trireme import trireme
-   
+
    namespace = Collection(trireme)
    ```
 
 3. Create a ```trireme_config.py``` file with your Cassandra and Solr information.
-   
+
    ```python
    # Cassandra Configuration
-   
+
    # Contact points for your cluster, currently only the first is used
    contact_points = ['127.0.0.1']
 
@@ -31,7 +33,7 @@ To use this tool within the scope of your project follow these steps.
    # Replication options. Defined as a map just as you would in CQL.
    replication = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }
    # replication = {'class' : 'NetworkTopologyStrategy', 'dc1' : 3, 'dc2' : 2}
-   
+
    # Authentication Information
    username = None
    password = None
@@ -45,21 +47,21 @@ To use this tool within the scope of your project follow these steps.
    ```
 
 4. Run the trireme setup task to create the basic directories
-   
+
    ```bash
    inv trireme.setup
    ```
 
 ## Usage
-Migrators contain logic to run migrations. This project contains a migrator for simple CQL scripts and Solr core configuration files. Not every migrator supports all actions. For example Solr included in DSE 4.6 does not include the ability to delete cores. In this case we do not have a task named drop. 
+Migrators contain logic to run migrations. This project contains a migrator for simple CQL scripts and Solr core configuration files. Not every migrator supports all actions. For example Solr included in DSE 4.6 does not include the ability to delete cores. In this case we do not have a task named drop.
 
-List all commands: 
+List all commands:
 
 ```inv -l```
 
-To list optional parameters for a command: 
+To list optional parameters for a command:
 
-```inv --help command.name```. 
+```inv --help command.name```.
 
 Example: ```inv --help cassandra.add_migration```
 
@@ -71,13 +73,13 @@ Actions supported:
 * ```cassandra.create``` - Creates the keyspace along with a table to track migrations. Note: The default replication strategy is SimpleStrategy with a Replication Factor of 3.
 * ```cassandra.drop``` - Drops the keyspace.
 * ```cassandra.migrate``` - Runs all missing migrations against the keyspace.
-* ```cassandra.add_migration --name migration_name``` - Generates a migration 
-file under ```db/migrations``` with the current timestamp prepended to the 
+* ```cassandra.add_migration --name migration_name``` - Generates a migration
+file under ```db/migrations``` with the current timestamp prepended to the
 provided ```--name``` value.
 * ```cassandra.dump_schema``` - Dumps the current schmea to ```db/schema.cql``. Be careful when using this feature when Solr is enabled.
-* ```cassandra.load_schema``` - Loads the schema from ```db/schema.cql```. This may be faster than running all migrations in a project. 
+* ```cassandra.load_schema``` - Loads the schema from ```db/schema.cql```. This may be faster than running all migrations in a project.
 
-#### Examples: 
+#### Examples:
 * ```inv cassandra.create cassandra.migrate``` - Creates the keyspaces and runs all migrations
 * ```inv cassandra.load_schema``` - Creates the keyspace and loads the schema from ```db/schema.cql```
 
@@ -88,7 +90,7 @@ Actions supported:
 
 * ```solr.create [--core foo.bar]``` - Uploads the core configuration files and calls the CREATE API endpoint
 * ```solr.migrate [--core foo.bar]``` - Uploads the core configuration files and calls the RELOAD API endpoint
-* ```solr.add_core --name foo.bar``` - Creates a core configuration directory and files. Use the format 
+* ```solr.add_core --name foo.bar``` - Creates a core configuration directory and files. Use the format
   ```keyspace.table_name``` when naming your cores.
 
 Example: ```inv solr.create``` - Uploads all core configuration files and calls the create core API endpoint.
@@ -143,7 +145,7 @@ The code that powers the migration engine. Each migrator receives its own file a
 Collects all of the Invoke tasks into a common namespace along with a simple setup task
 
 ## Python Dependencies
-*All required items have been specified in ```requirements.txt``` and 
+*All required items have been specified in ```requirements.txt``` and
 ```setup.py```. Select items are outlined below.*
 
 * cassandra-driver - DataStax driver for connecting with Cassandra, used when creating and dropping keyspaces
@@ -152,4 +154,3 @@ Collects all of the Invoke tasks into a common namespace along with a simple set
 
 ## Extending Trireme
 Adding a new migrator involves placing the code to invoke annotations in a file within the migrators directory. Next add your migrator to the ```Collection``` entry in ```trireme.py```. If you create a new migrator and would like to share it with the community, please fork the repo, add your migrator, and then open a pull request.
-
