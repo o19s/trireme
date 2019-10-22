@@ -1,4 +1,4 @@
 cassandra-driver==3.7.1
 futures==2.2.0
 invoke==0.15.0
-requests==2.5.1
+requests==2.20.0
